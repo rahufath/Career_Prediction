@@ -1,0 +1,97 @@
+{
+  "careers": [
+    "Cloud Architect",
+    "Cybersecurity Analyst",
+    "Data Scientist",
+    "Database Administrator",
+    "DevOps Engineer",
+    "Full Stack Developer",
+    "IT Project Manager",
+    "Machine Learning Engineer",
+    "Network Engineer",
+    "Product Manager",
+    "Quality Assurance Engineer",
+    "Software Developer",
+    "Systems Analyst",
+    "Technical Writer",
+    "UI/UX Designer"
+  ],
+  "feature_names": [
+    "angry",
+    "disgust",
+    "fear",
+    "happy",
+    "sad",
+    "surprise",
+    "neutral",
+    "openness",
+    "conscientiousness",
+    "extraversion",
+    "agreeableness",
+    "neuroticism",
+    "dominant_emotion_idx",
+    "emotion_entropy",
+    "emotion_variance",
+    "neutral_ratio",
+    "positive_ratio",
+    "negative_ratio"
+  ],
+  "n_features": 18,
+  "n_classes": 15,
+  "model_accuracies": {
+    "random_forest": 0.8535353535353535,
+    "gradient_boosting": 0.7777777777777778,
+    "neural_network": 0.7323232323232324
+  },
+  "personality_metrics": {
+    "openness": {
+      "r2": 0.45518155612589184,
+      "mae": 0.10089292237549989,
+      "rmse": 0.12595814382768591
+    },
+    "conscientiousness": {
+      "r2": 0.3491821769070773,
+      "mae": 0.07614728239860329,
+      "rmse": 0.09325036085388042
+    },
+    "extraversion": {
+      "r2": 0.474011363729294,
+      "mae": 0.10608110528349866,
+      "rmse": 0.14254966261282342
+    },
+    "agreeableness": {
+      "r2": 0.3013565224112632,
+      "mae": 0.09887105909272118,
+      "rmse": 0.1203814884422591
+    },
+    "neuroticism": {
+      "r2": 0.47709040114179735,
+      "mae": 0.05028879838585007,
+      "rmse": 0.06300805096380058
+    }
+  },
+  "emotion_features": [
+    "angry",
+    "disgust",
+    "fear",
+    "happy",
+    "sad",
+    "surprise",
+    "neutral"
+  ],
+  "personality_features": [
+    "openness",
+    "conscientiousness",
+    "extraversion",
+    "agreeableness",
+    "neuroticism"
+  ],
+  "engineered_features": [
+    "dominant_emotion_idx",
+    "emotion_entropy",
+    "emotion_variance",
+    "neutral_ratio",
+    "positive_ratio",
+    "negative_ratio"
+  ]
+}
