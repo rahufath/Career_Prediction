@@ -4,7 +4,7 @@ import numpy as np
 import joblib
 from typing import Dict, List, Optional, Tuple, Union
 from ..utils.logger import get_logger
-from ..schemas.constants import CAREER_DESCRIPTIONS
+from ..schemas.constants import CAREER_DETAILS
 
 logger = get_logger(__name__)
 
