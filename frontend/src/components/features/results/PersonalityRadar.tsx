@@ -1,56 +1,105 @@
 'use client';
 
 import React from 'react';
-import { ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Tooltip } from 'recharts';
 import { PersonalityTraits } from '@/types';
+import { motion } from 'framer-motion';
 
 interface PersonalityRadarProps {
     data: PersonalityTraits;
 }
 
-export default function PersonalityRadar({ data }: PersonalityRadarProps) {
-    const chartData = [
-        { subject: 'Openness', A: data.openness * 100, fullMark: 100 },
-        { subject: 'Conscientious', A: data.conscientiousness * 100, fullMark: 100 },
-        { subject: 'Extraversion', A: data.extraversion * 100, fullMark: 100 },
-        { subject: 'Agreeable', A: data.agreeableness * 100, fullMark: 100 },
-        { subject: 'Neuroticism', A: data.neuroticism * 100, fullMark: 100 },
-    ];
+const CircularTrait = ({ value, label, colorHex }: { value: number, label: string, colorHex: string }) => {
+    const radius = 32;
+    const circumference = 2 * Math.PI * radius;
+    const strokeDashoffset = circumference - (value / 100) * circumference;
 
     return (
-        <div className="p-4 h-[320px] flex items-center justify-center">
-            <ResponsiveContainer width="100%" height="100%">
-                <RadarChart cx="50%" cy="50%" outerRadius="80%" data={chartData}>
-                    <PolarGrid stroke="#e5e7eb" />
-                    <PolarAngleAxis
-                        dataKey="subject"
-                        tick={{ fill: '#6b7280', fontSize: 11, fontWeight: 500 }}
+        <div className="flex flex-col items-center gap-2">
+            <div className="relative flex items-center justify-center w-20 h-20">
+                <svg className="transform -rotate-90 w-20 h-20">
+                    <circle
+                        className="text-gray-100"
+                        strokeWidth="5"
+                        stroke="currentColor"
+                        fill="transparent"
+                        r={radius}
+                        cx="40"
+                        cy="40"
                     />
-                    <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
-                    <Tooltip
-                        contentStyle={{
-                            backgroundColor: '#ffffff',
-                            border: '1px solid #e5e7eb',
-                            borderRadius: '12px',
-                            fontSize: '11px',
-                            fontWeight: '600',
-                            boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)',
-                            padding: '8px 12px'
-                        }}
-                        itemStyle={{ color: '#6366f1' }}
-                        formatter={(value: any) => [`${Math.round(Number(value) || 0)}%`, 'Score']}
+                    <motion.circle
+                        strokeWidth="5"
+                        strokeDasharray={circumference}
+                        strokeDashoffset={strokeDashoffset}
+                        strokeLinecap="round"
+                        stroke={colorHex}
+                        fill="transparent"
+                        r={radius}
+                        cx="40"
+                        cy="40"
+                        initial={{ strokeDashoffset: circumference }}
+                        animate={{ strokeDashoffset }}
+                        transition={{ duration: 1.5, ease: "easeOut" }}
                     />
-                    <Radar
-                        name="Personality"
-                        dataKey="A"
-                        stroke="#6366f1"
-                        fill="#6366f1"
-                        fillOpacity={0.2}
-                        animationBegin={0}
-                        animationDuration={800}
-                    />
-                </RadarChart>
-            </ResponsiveContainer>
+                </svg>
+                <div className="absolute flex flex-col items-center">
+                    <span className="text-sm font-black text-gray-800">
+                        {Math.round(value)}%
+                    </span>
+                </div>
+            </div>
+            <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest text-center h-8 flex items-center">{label}</span>
+        </div>
+    );
+};
+
+export default function PersonalityRadar({ data }: PersonalityRadarProps) {
+    // Map personality traits to the requested bars
+    const traits = [
+        { label: 'Openness', value: data.openness * 100, colorHex: '#6366f1' }, // Indigo
+        { label: 'Altruism', value: data.agreeableness * 100, colorHex: '#10b981' }, // Emerald
+        { label: 'Conscientious', value: data.conscientiousness * 100, colorHex: '#3b82f6' }, // Blue
+        { label: 'Agreeable', value: data.agreeableness * 100, colorHex: '#f59e0b' }, // Amber
+        { label: 'Extraversion', value: data.extraversion * 100, colorHex: '#f43f5e' }, // Rose
+    ];
+
+    const containerVariants = {
+        hidden: { opacity: 0 },
+        visible: {
+            opacity: 1,
+            transition: { staggerChildren: 0.15 }
+        }
+    };
+
+    const itemVariants: any = {
+        hidden: { opacity: 0, scale: 0.8 },
+        visible: { opacity: 1, scale: 1, transition: { type: "spring", stiffness: 200, damping: 20 } }
+    };
+
+    return (
+        <div className="p-6 h-full min-h-[320px] flex items-center justify-center">
+            <motion.div
+                variants={containerVariants}
+                initial="hidden"
+                animate="visible"
+                className="flex flex-col gap-6 md:gap-8 items-center"
+            >
+                {/* Top Row: 3 items */}
+                <div className="flex justify-center gap-6 md:gap-8">
+                    {traits.slice(0, 3).map((trait) => (
+                        <motion.div key={trait.label} variants={itemVariants}>
+                            <CircularTrait {...trait} />
+                        </motion.div>
+                    ))}
+                </div>
+                {/* Bottom Row: 2 items */}
+                <div className="flex justify-center gap-6 md:gap-8">
+                    {traits.slice(3, 5).map((trait) => (
+                        <motion.div key={trait.label} variants={itemVariants}>
+                            <CircularTrait {...trait} />
+                        </motion.div>
+                    ))}
+                </div>
+            </motion.div>
         </div>
     );
 }

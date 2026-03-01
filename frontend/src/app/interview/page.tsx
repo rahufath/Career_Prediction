@@ -1,14 +1,14 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import { useInterview } from '@/hooks/useInterview';
 import { useWebSocket } from '@/hooks/useWebSocket';
 import { Button } from "@/components/ui/button";
-import { Loader2, AlertCircle, Brain, WifiOff } from "lucide-react";
-import QuestionCard from "@/components/features/interview/QuestionCard";
-import PersonalityRadar from "@/components/features/results/PersonalityRadar";
+import { Loader2, AlertCircle, Brain, WifiOff, ArrowRight } from "lucide-react";
+import { motion, AnimatePresence } from 'framer-motion';
+import { cn } from "@/lib/utils-r";
 
 const WebcamCapture = dynamic(() => import("@/components/features/interview/WebcamCapture"), { ssr: false });
 
@@ -32,11 +32,15 @@ export default function InterviewPage() {
 
     const { isConnected, lastInsight, sendEmotions } = useWebSocket('ws://localhost:8000/ws/analyze');
 
+    const lastSentRef = useRef<number>(0);
+
     useEffect(() => {
-        if (currentEmotions) {
+        const now = Date.now();
+        if (currentEmotions && isConnected && now - lastSentRef.current > 500) {
             sendEmotions(currentEmotions);
+            lastSentRef.current = now;
         }
-    }, [currentEmotions, sendEmotions]);
+    }, [currentEmotions, isConnected, sendEmotions]);
 
     if (loading && questions.length === 0) {
         return (
@@ -119,39 +123,69 @@ export default function InterviewPage() {
                 {/* Left Side: Video + Question */}
                 <div className="lg:col-span-8 space-y-6">
                     {/* Video Feed */}
-                    <div className="rounded-xl overflow-hidden border border-gray-200 bg-white shadow-sm">
-                        <div className="relative aspect-video bg-gray-100 flex items-center justify-center">
+                    <div className="rounded-xl overflow-hidden border border-gray-200 bg-white shadow-sm ring-1 ring-gray-100">
+                        <div className="relative aspect-video bg-gray-900 flex items-center justify-center overflow-hidden">
                             <WebcamCapture
                                 isActive={true}
                                 onEmotionsDetected={handleEmotionsDetected}
                                 onBlinkDetected={handleBlinkDetected}
                                 onError={handleWebcamError}
                             />
-                            {/* Live indicator */}
-                            <div className="absolute bottom-4 left-4 flex items-center gap-2 bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-lg border border-gray-200 shadow-sm">
-                                <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-                                <span className="text-xs font-medium text-gray-700">Live</span>
-                            </div>
-                        </div>
-                    </div>
 
-                    {/* Question Card */}
-                    <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-                        <QuestionCard
-                            question={currentQ.question}
-                            category={currentQ.category}
-                            currentNumber={currentIndex + 1}
-                            totalQuestions={questions.length}
-                            timeLeft={timeLeft}
-                            duration={currentQ.duration}
-                        />
-                        <div className="flex justify-center pt-4">
-                            <Button
-                                onClick={handleNext}
-                                className="h-11 rounded-lg px-8 text-sm font-medium bg-indigo-500 hover:bg-indigo-600 text-white transition-colors shadow-sm"
-                            >
-                                {currentIndex === questions.length - 1 ? 'Finish Interview' : 'Next Question'}
-                            </Button>
+                            {/* Question Overlay - Top */}
+                            <div className="absolute top-0 inset-x-0 p-8 bg-gradient-to-b from-black/80 via-black/40 to-transparent pointer-events-none">
+                                <AnimatePresence mode="wait">
+                                    <motion.div
+                                        key={currentIndex}
+                                        initial={{ opacity: 0, y: -10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: 10 }}
+                                        className="max-w-2xl"
+                                    >
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <span className="px-2 py-0.5 rounded-full bg-indigo-500 text-[10px] font-black uppercase tracking-widest text-white shadow-lg">
+                                                {currentQ.category}
+                                            </span>
+                                            <span className="text-[10px] font-black uppercase tracking-widest text-indigo-300">
+                                                Question {currentIndex + 1}
+                                            </span>
+                                        </div>
+                                        <h2 className="text-xl md:text-3xl font-black text-white leading-tight drop-shadow-2xl">
+                                            {currentQ.question}
+                                        </h2>
+                                    </motion.div>
+                                </AnimatePresence>
+                            </div>
+
+                            {/* Next Question/Finish Button - Top Right Overlay */}
+                            <div className="absolute top-8 right-8 z-20">
+                                <Button
+                                    onClick={handleNext}
+                                    className="h-12 px-6 rounded-xl bg-indigo-500 hover:bg-indigo-600 text-white font-bold shadow-2xl flex items-center gap-2 group transition-all"
+                                >
+                                    {currentIndex === questions.length - 1 ? 'Finish' : 'Next Question'}
+                                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                                </Button>
+                            </div>
+
+                            {/* Live indicator */}
+                            <div className="absolute bottom-6 left-6 flex items-center gap-2 bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/10 shadow-2xl">
+                                <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.5)]" />
+                                <span className="text-[10px] font-bold text-white uppercase tracking-widest">Live Feed</span>
+                            </div>
+
+                            {/* Timer Overlay - Bottom Right */}
+                            <div className="absolute bottom-6 right-6 flex items-center gap-3 bg-black/40 backdrop-blur-md px-4 py-2 rounded-xl border border-white/10 shadow-2xl">
+                                <div className="text-right">
+                                    <p className="text-[8px] font-black text-indigo-300 uppercase tracking-widest">Time Remaining</p>
+                                    <p className={cn(
+                                        "text-xl font-black tabular-nums transition-colors",
+                                        timeLeft < 10 ? "text-red-400" : "text-white"
+                                    )}>
+                                        {timeLeft}s
+                                    </p>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -167,20 +201,36 @@ export default function InterviewPage() {
 
                         <div className="space-y-4">
                             {currentEmotions ? (
-                                Object.entries(currentEmotions).map(([stat, value], i) => (
-                                    <div key={i} className="space-y-1.5">
-                                        <div className="flex justify-between items-end">
-                                            <span className="text-xs text-gray-500 capitalize">{stat}</span>
-                                            <span className="text-xs font-semibold text-gray-900">{Math.round((value as number) * 100)}%</span>
+                                Object.entries(currentEmotions).map(([stat, value], i) => {
+                                    const emotionColors: Record<string, string> = {
+                                        happy: '#10b981',    // Emerald
+                                        neutral: '#94a3b8',  // Slate
+                                        surprise: '#f59e0b', // Amber
+                                        fear: '#6366f1',     // Indigo
+                                        sad: '#3b82f6',      // Blue
+                                        angry: '#f43f5e',    // Rose
+                                        disgust: '#ec4899',  // Pink
+                                    };
+                                    const color = emotionColors[stat.toLowerCase()] || '#6366f1';
+
+                                    return (
+                                        <div key={i} className="space-y-1.5">
+                                            <div className="flex justify-between items-end">
+                                                <span className="text-xs text-gray-500 capitalize">{stat}</span>
+                                                <span className="text-xs font-semibold text-gray-900">{Math.round((value as number) * 100)}%</span>
+                                            </div>
+                                            <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                                                <div
+                                                    className="h-full transition-all duration-700 ease-out rounded-full"
+                                                    style={{
+                                                        width: `${(value as number) * 100}%`,
+                                                        backgroundColor: color
+                                                    }}
+                                                />
+                                            </div>
                                         </div>
-                                        <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                                            <div
-                                                className="h-full bg-indigo-500 transition-all duration-700 ease-out rounded-full"
-                                                style={{ width: `${(value as number) * 100}%` }}
-                                            />
-                                        </div>
-                                    </div>
-                                ))
+                                    );
+                                })
                             ) : (
                                 <p className="text-center text-gray-400 text-xs py-8">Waiting for camera...</p>
                             )}

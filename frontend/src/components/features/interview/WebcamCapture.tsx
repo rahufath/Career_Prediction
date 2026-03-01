@@ -5,7 +5,7 @@ import * as faceapi from '@vladmandic/face-api';
 import * as tf from '@tensorflow/tfjs-core';
 import '@tensorflow/tfjs-backend-webgl';
 import '@tensorflow/tfjs-backend-cpu';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/utils-r';
 import { EmotionData } from '@/types';
 
 interface WebcamCaptureProps {

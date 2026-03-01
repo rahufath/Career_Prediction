@@ -1,40 +1,56 @@
 'use client';
 
 import React from 'react';
-import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
+import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 
 interface EmotionTimelineProps {
     data: any[];
 }
 
 export default function EmotionTimeline({ data }: EmotionTimelineProps) {
-    const formattedData = data.map(item => ({
-        time: item.time,
-        ...item.emotions
-    }));
+    const formattedData = data.map(item => {
+        // Parse time to display only time part, ensuring no date is shown
+        let parsedTime = item.time || '';
+        try {
+            if (parsedTime) {
+                const date = new Date(parsedTime);
+                if (!isNaN(date.getTime())) {
+                    parsedTime = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                } else if (parsedTime.includes('T')) {
+                    parsedTime = parsedTime.split('T')[1].split('.')[0];
+                }
+            }
+        } catch (e) {
+            // fall back to original
+        }
 
+        return {
+            time: parsedTime,
+            happy: (item.emotions?.happy || 0) * 100,
+            neutral: (item.emotions?.neutral || 0) * 100,
+            surprise: (item.emotions?.surprise || 0) * 100,
+            fear: (item.emotions?.fear || 0) * 100,
+            sad: (item.emotions?.sad || 0) * 100,
+            angry: (item.emotions?.angry || 0) * 100,
+            disgust: (item.emotions?.disgust || 0) * 100
+        };
+    });
+
+    // If data doesn't start from 0 and user wants it to start from 0, we can ensure the minimum is 0 using the YAxis domain below.
     const emotions = [
-        { key: 'happy', color: '#6366f1' },
-        { key: 'neutral', color: '#94a3b8' },
-        { key: 'surprise', color: '#f59e0b' },
-        { key: 'fear', color: '#64748b' },
-        { key: 'sad', color: '#a1a1aa' },
-        { key: 'angry', color: '#ef4444' },
-        { key: 'disgust', color: '#10b981' }
+        { key: 'happy', color: '#10b981' }, // Emerald (Matches Altruism)
+        { key: 'neutral', color: '#94a3b8' }, // Slate
+        { key: 'surprise', color: '#f59e0b' }, // Amber (Matches Agreeable)
+        { key: 'fear', color: '#6366f1' }, // Indigo (Matches Openness)
+        { key: 'sad', color: '#3b82f6' }, // Blue (Matches Conscientious)
+        { key: 'angry', color: '#f43f5e' }, // Rose (Matches Extraversion)
+        { key: 'disgust', color: '#ec4899' } // Pink
     ];
 
     return (
         <div className="w-full h-[400px] p-6">
             <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={formattedData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                    <defs>
-                        {emotions.map(e => (
-                            <linearGradient key={e.key} id={`grad-${e.key}`} x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor={e.color} stopOpacity={0.12} />
-                                <stop offset="95%" stopColor={e.color} stopOpacity={0} />
-                            </linearGradient>
-                        ))}
-                    </defs>
+                <LineChart data={formattedData} margin={{ top: 10, right: 10, left: 10, bottom: 10 }}>
                     <CartesianGrid vertical={false} strokeDasharray="4 4" stroke="#f1f5f9" />
                     <XAxis
                         dataKey="time"
@@ -42,8 +58,16 @@ export default function EmotionTimeline({ data }: EmotionTimelineProps) {
                         tickLine={false}
                         tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 600 }}
                         dy={10}
+                        minTickGap={20}
                     />
-                    <YAxis hide domain={[0, 1]} />
+                    <YAxis
+                        domain={[0, 100]}
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 600 }}
+                        tickFormatter={(val) => `${val}%`}
+                        dx={-10}
+                    />
                     <Tooltip
                         contentStyle={{
                             backgroundColor: 'rgba(255, 255, 255, 0.98)',
@@ -52,8 +76,14 @@ export default function EmotionTimeline({ data }: EmotionTimelineProps) {
                             borderRadius: '12px',
                             fontSize: '11px',
                             fontWeight: '700',
-                            boxShadow: '0 10px 15px -3px rgba(0,0,0,0.05)',
+                            boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)',
                         }}
+                        formatter={(value: any, name: any) => {
+                            const val = typeof value === 'number' ? value : 0;
+                            const nm = typeof name === 'string' ? name : String(name || '');
+                            return [`${Math.round(val)}%`, nm.toUpperCase()];
+                        }}
+                        labelStyle={{ color: '#475569', marginBottom: '8px' }}
                     />
                     <Legend
                         iconType="circle"
@@ -65,25 +95,23 @@ export default function EmotionTimeline({ data }: EmotionTimelineProps) {
                             fontWeight: '700',
                             textTransform: 'uppercase',
                             letterSpacing: '0.05em',
-                            opacity: 0.6
+                            opacity: 0.8
                         }}
                     />
                     {emotions.map(e => (
-                        <Area
+                        <Line
                             key={e.key}
                             type="monotone"
                             dataKey={e.key}
+                            name={e.key}
                             stroke={e.color}
-                            fillOpacity={1}
-                            fill={`url(#grad-${e.key})`}
-                            strokeWidth={2}
-                            stackId="1"
+                            strokeWidth={3}
                             dot={false}
-                            activeDot={{ r: 4, strokeWidth: 0, fill: e.color }}
+                            activeDot={{ r: 6, strokeWidth: 0, fill: e.color }}
                             animationDuration={1500}
                         />
                     ))}
-                </AreaChart>
+                </LineChart>
             </ResponsiveContainer>
         </div>
     );

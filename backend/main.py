@@ -151,16 +151,20 @@ async def websocket_analyze(websocket: WebSocket):
                 session_history.append(emotions)
                 
                 # Perform real-time prediction if we have enough data
-                if len(session_history) % 5 == 0 and career_service:  # Check career_service existence
+                if len(session_history) % 5 == 0 and career_service:
                     try:
-                        # Aggregate current history safely across all standard emotions
+                        # Aggregate current history safely
                         STANDARD_EMOTIONS = ['angry', 'disgust', 'fear', 'happy', 'sad', 'surprise', 'neutral']
                         current_aggregated = {}
                         for k in STANDARD_EMOTIONS:
-                            # Use 0.0 as default for missing keys
                             current_aggregated[k] = sum(h.get(k, 0.0) for h in session_history) / len(session_history)
                         
-                        prediction = career_service.predict_career(emotions=current_aggregated, model_name='ensemble')
+                        # OPTIMIZATION: Run prediction in thread pool to avoid blocking async loop
+                        loop = asyncio.get_event_loop()
+                        prediction = await loop.run_in_executor(
+                            None, 
+                            lambda: career_service.predict_career(emotions=current_aggregated, model_name='ensemble')
+                        )
                         
                         # Send live feedback
                         await websocket.send_json({
