@@ -45,5 +45,3 @@ npm run dev
 ```
 *Application runs on: [http://localhost:3000](http://localhost:3000)*
 
-## 🧹 Maintenance
-Run the included `cleanup_project.ps1` at any time to remove cache files, logs, and temporary items.
