@@ -47,7 +47,3 @@ npm run dev
 
 ## 🧹 Maintenance
 Run the included `cleanup_project.ps1` at any time to remove cache files, logs, and temporary items.
-
-```powershell
-.\cleanup_project.ps1
-```
