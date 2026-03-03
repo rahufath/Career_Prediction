@@ -6,11 +6,12 @@ A premium AI-driven career interview and guidance platform that uses real-time e
 
 ```text
 ├── backend/            # Professional FastAPI server
-│   ├── app/            # Modular application logic (Services, Schemas, Utils)
-│   ├── models/         # Trained AI model files (.pkl)
-│   ├── data/           # Training datasets
-│   ├── scripts/        # Utility scripts (training, diagnosis)
-│   ├── main.py         # Concise entry point
+│   ├── app.py          # Main FastAPI entry point
+│   ├── models/         # Trained AI model files (.joblib, .pth, .pkl)
+│   ├── data/           # Training datasets (dataset.csv)
+│   ├── service/        # Core business logic and API models
+│   ├── lib/            # Utility functions and helper modules
+│   ├── Module_Training/# Jupyter notebooks for model development
 │   └── requirements.txt
 ├── frontend/           # Next.js web application
 │   ├── src/
@@ -31,7 +32,7 @@ cd backend
 python -m venv venv
 .\venv\Scripts\activate
 pip install -r requirements.txt
-python main.py
+python app.py
 ```
 *Server runs on: [http://localhost:8000](http://localhost:8000)*
 

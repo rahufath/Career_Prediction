@@ -99,6 +99,7 @@ export function useInterview() {
     }, [currentIndex, questions, currentEmotions, emotionHistory, submitInterview]);
 
     const handleEmotionsDetected = useCallback((emotions: EmotionData) => {
+        console.log('Emotions captured:', emotions);
         setCurrentEmotions(emotions);
         setIsRecording(true);
         setWebcamStatus('ready');
