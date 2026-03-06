@@ -163,34 +163,34 @@ async def websocket_analyze(websocket: WebSocket):
                 
                 # 3. Handle optional image frame
                 image_frame = message.image
-                if image_frame and career_service:
-                    backend_emotions = career_service.predict_emotion(image_frame)
-                    for k in STANDARD_EMOTIONS:
-                        session_sums[k] += backend_emotions.get(k, 0.0)
-                    session_count += 1
-
-                    # 3. Fast O(1) aggregation
-                    current_aggregated = {
-                        k: (session_sums[k] / session_count)
-                        for k in STANDARD_EMOTIONS
-                    }
-                    
-                    # 4. Predict career (Offload to thread pool for responsiveness)
-                    loop = asyncio.get_event_loop()
-                    prediction = await loop.run_in_executor(
-                        None, 
-                        lambda: career_service.predict_career(emotions=current_aggregated)
-                    )
-                    
-                    # 6. Send live feedback
-                    await websocket.send_json({
-                        "type": "LIVE_INSIGHT",
-                        "topCareer": prediction['predicted_career'],
-                        "confidence": prediction['top_careers'][0]['confidence'],
-                        "dominantEmotion": max(current_aggregated.items(), key=lambda x: x[1])[0],
-                        "personality": prediction['personality']
-                    })
-                    
+                try:
+                    if image_frame and career_service:
+                        backend_emotions = career_service.predict_emotion(image_frame)
+                        for k in STANDARD_EMOTIONS:
+                            session_sums[k] += backend_emotions.get(k, 0.0)
+                        session_count += 1
+    
+                        # 3. Fast O(1) aggregation
+                        current_aggregated = {
+                            k: (session_sums[k] / session_count)
+                            for k in STANDARD_EMOTIONS
+                        }
+                        
+                        # 4. Predict career (Offload to thread pool for responsiveness)
+                        loop = asyncio.get_event_loop()
+                        prediction = await loop.run_in_executor(
+                            None, 
+                            lambda: career_service.predict_career(emotions=current_aggregated)
+                        )
+                        
+                        # 6. Send live feedback
+                        await websocket.send_json({
+                            "type": "LIVE_INSIGHT",
+                            "topCareer": prediction['predicted_career'],
+                            "confidence": prediction['top_careers'][0]['confidence'],
+                            "dominantEmotion": max(current_aggregated.items(), key=lambda x: x[1])[0],
+                            "personality": prediction['personality']
+                        })
                 except Exception as e:
                     logger.error(f"Prediction error in WebSocket loop: {str(e)}")
                     await websocket.send_json({"error": "Internal prediction error", "detail": str(e)})

@@ -69,7 +69,7 @@ export function useInterview() {
         try {
             const results = await api.analyzeInterview(userName, history, blinkRate);
             sessionStorage.setItem('interviewResults', JSON.stringify(results));
-            router.push('/results');
+            router.push('/Personality-career/results');
         } catch (err) {
             setError('Failed to analyze interview. Please try again.');
             setLoading(false);

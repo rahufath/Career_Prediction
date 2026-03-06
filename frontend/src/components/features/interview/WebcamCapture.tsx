@@ -8,7 +8,7 @@ import '@tensorflow/tfjs-backend-cpu';
 import { cn } from '@/lib/utils-r';
 import { EmotionData } from '@/types';
 
-interface WebcamCaptureProps {
+export interface WebcamCaptureProps {
     onEmotionsDetected: (emotions: EmotionData) => void;
     onBlinkDetected?: () => void;
     onError?: (error: string) => void;
@@ -222,7 +222,7 @@ export default function WebcamCapture({ onEmotionsDetected, onBlinkDetected, onE
             {!isModelLoaded && (
                 <div className="absolute inset-0 flex items-center justify-center bg-black/80 text-white z-20">
                     <div className="text-center">
-                        <div className="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+                        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4 shadow-[0_0_15px_rgba(var(--primary),0.5)]" />
                         <p className="text-lg font-medium tracking-tight">AI Analysis Booting...</p>
                     </div>
                 </div>
